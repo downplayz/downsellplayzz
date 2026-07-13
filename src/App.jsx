@@ -710,9 +710,6 @@ export default function App() {
                               <h4 className="font-sans text-xs sm:text-sm font-black text-white group-hover:text-blue-400 transition-colors truncate">
                                 {game.title}
                               </h4>
-                              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mt-0.5">
-                                {game.category}
-                              </span>
                             </div>
                           </div>
                         </div>

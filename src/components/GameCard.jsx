@@ -147,9 +147,6 @@ function GameCard({
             <h3 className="font-sans text-xs font-black text-slate-100 group-hover:text-blue-400 transition-colors truncate">
               {game.title}
             </h3>
-            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mt-0.5">
-              {game.category || "Game"}
-            </span>
           </div>
         </div>
 
