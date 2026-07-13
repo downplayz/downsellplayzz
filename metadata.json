@@ -1,6 +1,6 @@
 {
-  "name": "Unblocked Games Hub",
-  "description": "A clean, modern hub for unblocked HTML5 games with search, category filtering, user favorites, and custom game iframe integration.",
+  "name": "kira.game",
+  "description": "kira.game - Play the best unblocked games free instantly in a beautiful blue & white Poki-style game portal.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

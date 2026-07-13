@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, memo } from "react";
 import { Play, Gamepad2, Star } from "lucide-react";
 import * as LucideIcons from "lucide-react";
 
-export default function GameCard({
+function GameCard({
   game,
   onPlayGame,
   isFavorite = false,
@@ -15,40 +15,40 @@ export default function GameCard({
   return (
     <div
       onClick={() => onPlayGame(game)}
-      className="group relative aspect-square rounded-2xl overflow-hidden border border-neutral-900 bg-neutral-950 hover:border-neutral-700 hover:shadow-2xl cursor-pointer transition-all duration-300 flex flex-col justify-between shadow-md"
+      className="group relative aspect-square rounded-[24px] overflow-hidden border border-slate-150/70 bg-white hover:border-blue-500 hover:shadow-[0_12px_28px_rgba(59,130,246,0.18)] cursor-pointer transition-all duration-300 flex flex-col justify-between shadow-sm select-none poki-bouncy-hover"
       id={`game-card-${game.id}`}
     >
-      {/* Monochrome Soft Overlay Gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-neutral-800/5 to-black/60 opacity-60 group-hover:opacity-40 transition-opacity duration-300 z-10 pointer-events-none" />
+      {/* Playful Soft Overlay */}
+      <div className="absolute inset-0 bg-blue-500/[0.02] opacity-100 group-hover:opacity-0 transition-opacity duration-300 z-10 pointer-events-none" />
 
-      {/* Favorite Star Overlay Button */}
+      {/* Favorite Star Overlay Button - styled elegantly like Poki */}
       {onToggleFavorite && (
         <button
           onClick={(e) => {
             e.stopPropagation(); // Avoid triggering onPlayGame
             onToggleFavorite(game.id);
           }}
-          className={`absolute top-3 right-3 z-20 rounded-xl p-2 border transition-all duration-300 backdrop-blur-md cursor-pointer ${
+          className={`absolute top-3.5 right-3.5 z-20 rounded-full p-2 border transition-all duration-300 backdrop-blur-sm cursor-pointer shadow-sm ${
             isFavorite
-              ? "border-amber-400 bg-amber-400/10 text-amber-400 opacity-100 scale-100"
-              : "border-neutral-850 bg-neutral-950/80 text-neutral-500 hover:border-neutral-600 hover:text-white opacity-0 group-hover:opacity-100 scale-95 hover:scale-105"
+              ? "border-rose-200 bg-rose-50 text-rose-500 opacity-100 scale-100"
+              : "border-slate-100 bg-white/90 text-slate-400 hover:border-slate-200 hover:text-rose-500 opacity-0 group-hover:opacity-100 scale-95 hover:scale-110"
           }`}
           title={isFavorite ? "Remove from Favorites" : "Add to Favorites"}
           id={`fav-btn-card-${game.id}`}
         >
-          <Star className={`h-3.5 w-3.5 ${isFavorite ? "fill-amber-400 text-amber-400" : ""}`} />
+          <Star className={`h-4 w-4 ${isFavorite ? "fill-rose-500 text-rose-500" : ""}`} />
         </button>
       )}
 
       {/* Main Banner Visuals (Central Game Icon or Banner image with Shimmer skeleton) */}
-      <div className="flex-1 w-full h-full relative overflow-hidden flex items-center justify-center bg-neutral-950">
+      <div className="flex-1 w-full h-full relative overflow-hidden flex items-center justify-center bg-slate-50">
         {game.banner ? (
           <>
             {/* Shimmer loading placeholder */}
             {!imgLoaded && (
-              <div className="absolute inset-0 bg-neutral-900 animate-pulse flex flex-col items-center justify-center gap-2">
-                <IconComponent className="h-6 w-6 text-neutral-600 animate-bounce" />
-                <span className="font-mono text-[8px] text-neutral-600 tracking-wider uppercase">Loading</span>
+              <div className="absolute inset-0 bg-slate-100 animate-pulse flex flex-col items-center justify-center gap-2">
+                <IconComponent className="h-6 w-6 text-slate-300 animate-bounce" />
+                <span className="font-sans text-[9px] text-slate-400 font-bold tracking-wider uppercase">Loading</span>
               </div>
             )}
             <img
@@ -64,27 +64,28 @@ export default function GameCard({
           </>
         ) : (
           <div className="flex flex-col items-center justify-center p-6 w-full h-full">
-            <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-neutral-900 text-white border border-neutral-800 shadow-md">
-              <div className="absolute inset-x-0 top-0 h-1/2 bg-white/5 rounded-t-2xl" />
-              <IconComponent className="h-8 w-8 text-white" />
+            <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-slate-700 border border-slate-200 shadow-sm">
+              <IconComponent className="h-8 w-8 text-slate-600" />
             </div>
           </div>
         )}
 
-        {/* Hover Play Button Overlay */}
-        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center z-10">
-          <div className="h-12 w-12 rounded-full bg-white flex items-center justify-center text-black shadow-2xl transform scale-90 group-hover:scale-100 transition-transform duration-300">
-            <Play className="h-5 w-5 fill-current text-black ml-0.5" />
+        {/* Hover Play Button Overlay - styled like Poki's blue button */}
+        <div className="absolute inset-0 bg-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center z-10">
+          <div className="h-12 w-12 rounded-full bg-blue-600 flex items-center justify-center text-white shadow-lg transform scale-90 group-hover:scale-100 transition-transform duration-300">
+            <Play className="h-5 w-5 fill-current text-white ml-0.5" />
           </div>
         </div>
       </div>
 
-      {/* Solid Black/Gray Title Bar */}
-      <div className="w-full bg-neutral-950 border-t border-neutral-900 py-3 px-4 text-center z-10">
-        <h3 className="font-display text-xs font-bold text-neutral-400 group-hover:text-white transition-colors tracking-wide truncate">
+      {/* Solid Playful Title Bar */}
+      <div className="w-full bg-white border-t border-slate-100/80 py-3.5 px-4 text-center z-10">
+        <h3 className="font-sans text-xs font-bold text-slate-700 group-hover:text-blue-600 transition-colors tracking-wide truncate">
           {game.title}
         </h3>
       </div>
     </div>
   );
 }
+
+export default memo(GameCard);
