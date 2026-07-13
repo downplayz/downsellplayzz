@@ -9,7 +9,7 @@ import {
 import * as LucideIcons from "lucide-react";
 import defaultGamesData from "./games.json";
 import Header from "./components/Header";
-import GameCard from "./components/GameCard";
+import GameCard, { getGameCardStyle } from "./components/GameCard";
 import GameArena from "./components/GameArena";
 import Logo from "./components/Logo";
 
@@ -48,21 +48,9 @@ export default function App() {
     return saved ? JSON.parse(saved) : [];
   });
 
-  const [customGames, setCustomGames] = useState(() => {
-    const saved = localStorage.getItem("kira_custom_games");
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  // Database edits & deletions states
-  const [defaultGamesOverrides, setDefaultGamesOverrides] = useState(() => {
-    const saved = localStorage.getItem("kira_default_overrides");
-    return saved ? JSON.parse(saved) : {};
-  });
-
-  const [deletedDefaultIds, setDeletedDefaultIds] = useState(() => {
-    const saved = localStorage.getItem("kira_deleted_defaults");
-    return saved ? JSON.parse(saved) : [];
-  });
+  // Client-side consolidated games list preloaded with defaults
+  const [allGames, setAllGames] = useState(defaultGamesData);
+  const [gamesLoading, setGamesLoading] = useState(true);
 
   const [editingGameId, setEditingGameId] = useState(null);
   const [adminListSearch, setAdminListSearch] = useState("");
@@ -82,10 +70,14 @@ export default function App() {
   const [newGameLogo, setNewGameLogo] = useState("");
   const [newGameLegacy, setNewGameLegacy] = useState("");
   const [newGamePreviewVid, setNewGamePreviewVid] = useState("");
+  const [isVideoUploading, setIsVideoUploading] = useState(false);
+  const [videoUploadError, setVideoUploadError] = useState("");
+  const [isDragOver, setIsDragOver] = useState(false);
   const [newGameIframe, setNewGameIframe] = useState("");
   const [newGameCategory, setNewGameCategory] = useState("Arcade");
   const [newGameDesc, setNewGameDesc] = useState("");
   const [newGameControls, setNewGameControls] = useState("");
+  const [newGameCardStyle, setNewGameCardStyle] = useState("square"); // CrazyGames style
   const [formSuccessMsg, setFormSuccessMsg] = useState("");
 
   // Sync favorites
@@ -98,45 +90,42 @@ export default function App() {
     localStorage.setItem("kira_recents", JSON.stringify(recentIds));
   }, [recentIds]);
 
-  // Sync custom games
+  // Fetch games from Express API server on mount
   useEffect(() => {
-    localStorage.setItem("kira_custom_games", JSON.stringify(customGames));
-  }, [customGames]);
-
-  // Sync default games overrides
-  useEffect(() => {
-    localStorage.setItem("kira_default_overrides", JSON.stringify(defaultGamesOverrides));
-  }, [defaultGamesOverrides]);
-
-  // Sync deleted default IDs
-  useEffect(() => {
-    localStorage.setItem("kira_deleted_defaults", JSON.stringify(deletedDefaultIds));
-  }, [deletedDefaultIds]);
+    let isMounted = true;
+    const fetchGames = async () => {
+      try {
+        const res = await fetch("/api/games");
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted) {
+            setAllGames(data);
+            setGamesLoading(false);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching games from server:", err);
+      }
+    };
+    fetchGames();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Parse deep URL parameters for clean loading on first render
   useEffect(() => {
     const path = window.location.pathname;
     const cleanPath = path.startsWith("/") ? path.slice(1) : path;
-    if (cleanPath) {
-      const matched = [...customGames, ...defaultGamesData].find(
+    if (cleanPath && allGames.length > 0) {
+      const matched = allGames.find(
         (g) => g.id === cleanPath || g.title.toLowerCase().replace(/\s+/g, "-") === cleanPath
       );
       if (matched) {
         setActiveGame(matched);
       }
     }
-  }, [customGames]);
-
-  // Merge default games and user created games with overrides and deletes
-  const allGames = useMemo(() => {
-    const defaults = defaultGamesData
-      .filter((g) => !deletedDefaultIds.includes(g.id))
-      .map((g) => {
-        const override = defaultGamesOverrides[g.id];
-        return override ? { ...g, ...override } : g;
-      });
-    return [...customGames, ...defaults];
-  }, [customGames, defaultGamesOverrides, deletedDefaultIds]);
+  }, [allGames]);
 
   // Toggle favorite status
   const handleToggleFavorite = useCallback((gameId) => {
@@ -265,12 +254,80 @@ export default function App() {
     setNewGameCategory(game.category || "Arcade");
     setNewGameDesc(game.description || "");
     setNewGameControls(game.controls || "");
+    setNewGameCardStyle(game.cardStyle || "square");
     
     // Quick success/status msg helper
     setFormSuccessMsg(`Editing "${game.title}"... Fill form below to edit and save changes!`);
     setTimeout(() => {
       setFormSuccessMsg("");
     }, 5000);
+  };
+
+  const uploadVideoFile = async (file) => {
+    if (!file) return;
+    
+    const fileExt = file.name.split('.').pop().toLowerCase();
+    const validExts = ["mp4", "webm", "mov"];
+    
+    if (!validExts.includes(fileExt)) {
+      setVideoUploadError("Only MP4, WebM, or MOV formats are supported.");
+      return;
+    }
+
+    setIsVideoUploading(true);
+    setVideoUploadError("");
+
+    const formData = new FormData();
+    formData.append("video", file);
+
+    try {
+      const res = await fetch("/api/upload-preview", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.videoUrl) {
+          setNewGamePreviewVid(data.videoUrl);
+        } else {
+          setVideoUploadError(data.error || "Failed to upload video.");
+        }
+      } else {
+        const errorData = await res.json().catch(() => ({}));
+        setVideoUploadError(errorData.error || "Upload failed on server.");
+      }
+    } catch (err) {
+      console.error("Error uploading video:", err);
+      setVideoUploadError("Network error: Could not reach full-stack server.");
+    } finally {
+      setIsVideoUploading(false);
+    }
+  };
+
+  const handleVideoFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      uploadVideoFile(file);
+    }
+  };
+
+  const handleVideoDragOver = (e) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleVideoDragLeave = () => {
+    setIsDragOver(false);
+  };
+
+  const handleVideoDrop = (e) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      uploadVideoFile(file);
+    }
   };
 
   const handleCancelEdit = () => {
@@ -283,10 +340,11 @@ export default function App() {
     setNewGameIframe("");
     setNewGameDesc("");
     setNewGameControls("");
+    setNewGameCardStyle("square");
   };
 
   // Add or Edit game form submission
-  const handleAddGameSubmit = (e) => {
+  const handleAddGameSubmit = async (e) => {
     e.preventDefault();
     if (!newGameTitle.trim()) {
       alert("Please provide a game name.");
@@ -300,9 +358,7 @@ export default function App() {
     const isRawIframe = newGameIframe.trim().toLowerCase().startsWith("<iframe");
 
     if (editingGameId) {
-      // --- EDIT MODE ---
-      const isCustom = customGames.some((g) => g.id === editingGameId);
-      
+      // --- EDIT MODE (Update on Server) ---
       const updatedGame = {
         id: editingGameId,
         title: newGameTitle.trim(),
@@ -314,26 +370,34 @@ export default function App() {
         description: newGameDesc.trim() || "An unblocked HTML5 game uploaded via admin console.",
         controls: newGameControls.trim() || "Use mouse or standard keyboard controls.",
         icon: "Gamepad2",
+        cardStyle: newGameCardStyle,
         ...(isRawIframe 
           ? { iframe: newGameIframe.trim(), iframeUrl: undefined }
           : { iframeUrl: newGameIframe.trim(), iframe: undefined })
       };
 
-      if (isCustom) {
-        setCustomGames((prev) =>
-          prev.map((g) => (g.id === editingGameId ? updatedGame : g))
-        );
-      } else {
-        setDefaultGamesOverrides((prev) => ({
-          ...prev,
-          [editingGameId]: updatedGame,
-        }));
-      }
+      try {
+        const response = await fetch("/api/games/update", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updatedGame)
+        });
 
-      setFormSuccessMsg(`Successfully saved changes to "${newGameTitle}"!`);
-      setEditingGameId(null);
+        if (response.ok) {
+          setAllGames((prev) =>
+            prev.map((g) => (g.id === editingGameId ? updatedGame : g))
+          );
+          setFormSuccessMsg(`Successfully saved changes to "${newGameTitle}"!`);
+          setEditingGameId(null);
+        } else {
+          alert("Failed to update game on the server.");
+        }
+      } catch (err) {
+        console.error("Error updating game:", err);
+        alert("Network error: Could not reach full-stack server.");
+      }
     } else {
-      // --- CREATE/INSERT MODE ---
+      // --- CREATE/INSERT MODE (Add on Server) ---
       const gameId = `custom-game-${Date.now()}`;
       const newGame = {
         id: gameId,
@@ -346,13 +410,29 @@ export default function App() {
         description: newGameDesc.trim() || "An unblocked HTML5 game uploaded via admin console.",
         controls: newGameControls.trim() || "Use mouse or standard keyboard controls.",
         icon: "Gamepad2",
+        cardStyle: newGameCardStyle,
         ...(isRawIframe 
           ? { iframe: newGameIframe.trim() }
           : { iframeUrl: newGameIframe.trim() })
       };
 
-      setCustomGames((prev) => [newGame, ...prev]);
-      setFormSuccessMsg(`Successfully added "${newGameTitle}"!`);
+      try {
+        const response = await fetch("/api/games/add", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(newGame)
+        });
+
+        if (response.ok) {
+          setAllGames((prev) => [newGame, ...prev]);
+          setFormSuccessMsg(`Successfully added "${newGameTitle}"!`);
+        } else {
+          alert("Failed to add game to the server.");
+        }
+      } catch (err) {
+        console.error("Error adding game:", err);
+        alert("Network error: Could not reach full-stack server.");
+      }
     }
 
     // Reset fields
@@ -364,6 +444,7 @@ export default function App() {
     setNewGameIframe("");
     setNewGameDesc("");
     setNewGameControls("");
+    setNewGameCardStyle("square");
 
     setTimeout(() => {
       setFormSuccessMsg("");
@@ -371,31 +452,42 @@ export default function App() {
   };
 
   // Delete any game from database (custom or default)
-  const handleDeleteGame = (gameId, gameTitle) => {
+  const handleDeleteGame = async (gameId, gameTitle) => {
     if (confirm(`Are you sure you want to delete "${gameTitle || "this game"}" from the database?`)) {
-      const isCustom = customGames.some((g) => g.id === gameId);
-      if (isCustom) {
-        setCustomGames((prev) => prev.filter((g) => g.id !== gameId));
-      } else {
-        setDeletedDefaultIds((prev) => [...prev, gameId]);
-      }
-      
-      if (editingGameId === gameId) {
-        setEditingGameId(null);
-        setNewGameTitle("");
-        setNewGameBanner("");
-        setNewGameLogo("");
-        setNewGameLegacy("");
-        setNewGamePreviewVid("");
-        setNewGameIframe("");
-        setNewGameDesc("");
-        setNewGameControls("");
+      try {
+        const response = await fetch("/api/games/delete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: gameId })
+        });
+
+        if (response.ok) {
+          setAllGames((prev) => prev.filter((g) => g.id !== gameId));
+          
+          if (editingGameId === gameId) {
+            setEditingGameId(null);
+            setNewGameTitle("");
+            setNewGameBanner("");
+            setNewGameLogo("");
+            setNewGameLegacy("");
+            setNewGamePreviewVid("");
+            setNewGameIframe("");
+            setNewGameDesc("");
+            setNewGameControls("");
+            setNewGameCardStyle("square");
+          }
+        } else {
+          alert("Failed to delete game from server.");
+        }
+      } catch (err) {
+        console.error("Error deleting game:", err);
+        alert("Network error: Could not delete game from server.");
       }
     }
   };
 
   return (
-    <div className="relative min-h-screen bg-[#0a0d14] text-slate-100 flex flex-col font-sans overflow-x-hidden selection:bg-blue-500/20 selection:text-blue-300">
+    <div className="relative min-h-screen bg-[#101626] text-slate-100 flex flex-col font-sans overflow-x-hidden selection:bg-blue-500/20 selection:text-blue-300">
       
       {/* Background radial glow */}
       <div className="absolute top-0 left-1/4 h-[500px] w-[500px] rounded-full bg-blue-500/5 blur-[120px] pointer-events-none" />
@@ -420,7 +512,7 @@ export default function App() {
         
         {/* Left Sticky Vertical Sidebar (Desktop only) */}
         {!activeGame && (
-          <aside className="w-64 flex-shrink-0 border-r border-slate-900 bg-[#0c101a] p-5 hidden md:flex flex-col justify-between">
+          <aside className="w-64 flex-shrink-0 border-r border-slate-700/30 bg-[#141b2d] p-5 hidden md:flex flex-col justify-between">
             <div className="space-y-6">
               <div className="px-2">
                 <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
@@ -440,8 +532,8 @@ export default function App() {
                       }}
                       className={`w-full flex items-center justify-between rounded-2xl px-4 py-3 text-xs font-bold transition-all cursor-pointer ${
                         isActive
-                          ? "bg-blue-600/15 border border-blue-500/30 text-blue-400"
-                          : "text-slate-400 hover:bg-slate-900/60 hover:text-slate-100 border border-transparent"
+                          ? "bg-blue-600/20 border border-blue-500/40 text-blue-400 shadow-sm"
+                          : "text-slate-300 hover:bg-[#1a2236] hover:text-white border border-transparent"
                       }`}
                       id={`sidebar-cat-${cat.value.toLowerCase()}`}
                     >
@@ -534,7 +626,7 @@ export default function App() {
                     {/* Left featured wide card */}
                     <div 
                       onClick={() => handlePlayGame(featuredGame)}
-                      className="lg:col-span-7 relative h-[320px] sm:h-[400px] w-full rounded-[32px] overflow-hidden group cursor-pointer border border-slate-800/60 bg-[#121826] shadow-xl hover:border-blue-500/80 hover:shadow-[0_12px_28px_rgba(59,130,246,0.15)] transition-all duration-300"
+                      className="lg:col-span-7 relative h-[320px] sm:h-[400px] w-full rounded-[32px] overflow-hidden group cursor-pointer border border-slate-700/50 bg-[#1a2236] shadow-xl hover:border-blue-400/80 hover:shadow-[0_12px_28px_rgba(59,130,246,0.2)] transition-all duration-300"
                     >
                       <img 
                         src={featuredGame.banner} 
@@ -580,7 +672,7 @@ export default function App() {
                         <div
                           key={game.id}
                           onClick={() => handlePlayGame(game)}
-                          className="relative aspect-video rounded-[24px] overflow-hidden group cursor-pointer border border-slate-800/40 bg-[#121826] shadow-lg hover:border-blue-500 hover:scale-[1.02] transition-all duration-300"
+                          className="relative aspect-video rounded-[24px] overflow-hidden group cursor-pointer border border-slate-700/50 bg-[#1a2236] shadow-lg hover:border-blue-400 hover:scale-[1.02] transition-all duration-300"
                         >
                           <img 
                             src={game.banner} 
@@ -588,7 +680,7 @@ export default function App() {
                             referrerPolicy="no-referrer"
                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent z-10 pointer-events-none" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
                           {game.previewVid && (
                             <video 
@@ -601,13 +693,27 @@ export default function App() {
                             />
                           )}
 
-                          <div className="absolute bottom-0 left-0 right-0 p-4 z-20 text-left">
-                            <span className="text-[9px] font-bold text-blue-400 uppercase tracking-wider block">
-                              {game.category}
-                            </span>
-                            <h4 className="font-sans text-xs sm:text-sm font-black text-white group-hover:text-blue-400 transition-colors truncate mt-0.5">
-                              {game.title}
-                            </h4>
+                          <div className="absolute bottom-0 left-0 right-0 p-4 z-20 text-left opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 pointer-events-none flex items-center gap-2.5">
+                            {game.logo ? (
+                              <img
+                                src={game.logo}
+                                alt=""
+                                referrerPolicy="no-referrer"
+                                className="w-7 h-7 rounded-xl object-cover border border-white/20 shadow-sm flex-shrink-0"
+                              />
+                            ) : (
+                              <div className="w-7 h-7 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 flex-shrink-0">
+                                <LucideIcons.Gamepad2 className="h-3.5 w-3.5" />
+                              </div>
+                            )}
+                            <div className="min-w-0 flex-1">
+                              <h4 className="font-sans text-xs sm:text-sm font-black text-white group-hover:text-blue-400 transition-colors truncate">
+                                {game.title}
+                              </h4>
+                              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mt-0.5">
+                                {game.category}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -633,7 +739,7 @@ export default function App() {
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         whileHover={{ scale: 1.02 }}
-                        className="flex-shrink-0 flex items-center gap-3 bg-[#111624] hover:bg-slate-900/80 border border-slate-800/60 px-4 py-3 rounded-2xl cursor-pointer group transition-all w-52 shadow-md"
+                        className="flex-shrink-0 flex items-center gap-3 bg-[#1a2236] hover:bg-[#202b44] border border-slate-700/50 px-4 py-3 rounded-2xl cursor-pointer group transition-all w-52 shadow-md"
                         id={`recent-card-${rg.id}`}
                       >
                         <img
@@ -666,7 +772,7 @@ export default function App() {
                       </h3>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 grid-flow-row-dense gap-5">
                     {legacySectionGames.map((game) => (
                       <GameCard
                         key={`legacy-${game.id}`}
@@ -674,7 +780,7 @@ export default function App() {
                         onPlayGame={handlePlayGame}
                         isFavorite={favoriteIds.includes(game.id)}
                         onToggleFavorite={handleToggleFavorite}
-                        variant="legacy"
+                        styleOverride="vertical"
                       />
                     ))}
                   </div>
@@ -701,7 +807,7 @@ export default function App() {
               {/* Core Catalog Game Cards Grid */}
               {filteredGames.length > 0 ? (
                 <motion.div 
-                  className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5"
+                  className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 grid-flow-row-dense gap-5"
                   initial="hidden"
                   animate="visible"
                   variants={{
@@ -717,6 +823,7 @@ export default function App() {
                   {filteredGames.map((game) => (
                     <motion.div
                       key={game.id}
+                      className={getGameCardStyle(game) === "rectangular" ? "col-span-1 sm:col-span-2" : "col-span-1"}
                       variants={{
                         hidden: { opacity: 0, y: 8 },
                         visible: { opacity: 1, y: 0, transition: { duration: 0.15, ease: "easeOut" } }
@@ -727,14 +834,13 @@ export default function App() {
                         onPlayGame={handlePlayGame}
                         isFavorite={favoriteIds.includes(game.id)}
                         onToggleFavorite={handleToggleFavorite}
-                        variant="standard"
                       />
                     </motion.div>
                   ))}
                 </motion.div>
               ) : (
                 /* High-Contrast Elegant Empty State */
-                <div className="text-center py-20 rounded-3xl border border-dashed border-slate-850 bg-[#0e1320]">
+                <div className="text-center py-20 rounded-3xl border border-dashed border-slate-700 bg-[#1a2236]">
                   <HelpCircle className="mx-auto h-12 w-12 text-slate-600" />
                   <h4 className="font-sans text-base font-bold text-slate-300 mt-4">
                     No Games Found
@@ -984,18 +1090,100 @@ export default function App() {
                       />
                     </div>
 
+                    <div className="space-y-1 sm:col-span-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                        Preview Video (.mp4 / .webm) *
+                      </label>
+                      <div className="space-y-2">
+                        {/* Drag and Drop Zone */}
+                        <div
+                          onDragOver={handleVideoDragOver}
+                          onDragLeave={handleVideoDragLeave}
+                          onDrop={handleVideoDrop}
+                          className={`relative border-2 border-dashed rounded-xl p-4 text-center transition-all duration-200 cursor-pointer flex flex-col items-center justify-center min-h-[110px] ${
+                            isDragOver
+                              ? "border-blue-500 bg-blue-500/10 text-blue-300"
+                              : "border-slate-800 bg-slate-900/40 text-slate-400 hover:border-slate-700 hover:bg-slate-900/60"
+                          }`}
+                          onClick={() => document.getElementById("video-file-input").click()}
+                        >
+                          <input
+                            type="file"
+                            id="video-file-input"
+                            accept="video/mp4,video/webm,video/quicktime"
+                            onChange={handleVideoFileChange}
+                            className="hidden"
+                          />
+                          {isVideoUploading ? (
+                            <div className="flex flex-col items-center justify-center gap-2">
+                              <LucideIcons.Loader2 className="h-6 w-6 text-blue-500 animate-spin" />
+                              <span className="text-xs text-slate-300 font-medium animate-pulse">Uploading preview video...</span>
+                            </div>
+                          ) : newGamePreviewVid ? (
+                            <div className="flex flex-col items-center justify-center gap-1.5 w-full">
+                              <LucideIcons.CheckCircle2 className="h-6 w-6 text-emerald-400 animate-bounce" />
+                              <span className="text-xs text-emerald-400 font-medium truncate max-w-full px-2">
+                                {newGamePreviewVid.startsWith("/uploads/") 
+                                  ? `Uploaded: ${newGamePreviewVid.split("/").pop()}`
+                                  : "Video configured!"}
+                              </span>
+                              <span className="text-[10px] text-slate-500">Drag/click to replace</span>
+                            </div>
+                          ) : (
+                            <div className="flex flex-col items-center justify-center gap-1">
+                              <LucideIcons.UploadCloud className="h-7 w-7 text-slate-500" />
+                              <p className="text-xs font-semibold text-slate-300">Upload MP4 file</p>
+                              <p className="text-[10px] text-slate-500">Drag & drop here or click to browse</p>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Text URL Input option */}
+                        <div className="flex items-center gap-2">
+                          <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">OR URL</span>
+                          <input
+                            type="text"
+                            placeholder="e.g. /uploads/video.mp4 or direct URL"
+                            value={newGamePreviewVid}
+                            onChange={(e) => setNewGamePreviewVid(e.target.value)}
+                            className="flex-1 rounded-xl border border-slate-800 bg-slate-900/60 py-1.5 px-3 text-xs text-slate-100 focus:border-blue-500 focus:outline-none placeholder-slate-600"
+                            title="Direct link to mp4 file"
+                          />
+                          {newGamePreviewVid && (
+                            <button
+                              type="button"
+                              onClick={() => setNewGamePreviewVid("")}
+                              className="p-1.5 bg-slate-800 hover:bg-rose-500/25 hover:text-rose-400 rounded-lg text-slate-400 transition-colors cursor-pointer"
+                              title="Clear Video"
+                            >
+                              <LucideIcons.X className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                        </div>
+
+                        {videoUploadError && (
+                          <div className="text-[10px] text-rose-400 font-medium bg-rose-950/20 border border-rose-900/30 rounded-lg py-1 px-2.5">
+                            {videoUploadError}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                        Preview Video URL (.mp4 file direct link)
+                        Card Aspect / Sizing Style (CrazyGames Style) *
                       </label>
-                      <input
-                        type="url"
-                        placeholder="e.g. https://domain.com/preview.mp4"
-                        value={newGamePreviewVid}
-                        onChange={(e) => setNewGamePreviewVid(e.target.value)}
-                        className="w-full rounded-xl border border-slate-800 bg-slate-900/60 py-2 px-3 text-xs text-slate-100 focus:border-blue-500 focus:outline-none"
-                        title="This video will auto-play on game card hover"
-                      />
+                      <select
+                        value={newGameCardStyle}
+                        onChange={(e) => setNewGameCardStyle(e.target.value)}
+                        className="w-full rounded-xl border border-slate-800 bg-slate-900/60 py-2 px-3 text-xs text-slate-100 focus:border-blue-500 focus:outline-none cursor-pointer"
+                      >
+                        <option value="square" className="bg-[#121826]">Square (uses Logo)</option>
+                        <option value="rectangular" className="bg-[#121826]">Rectangular Horizontal (uses Banner)</option>
+                        <option value="vertical" className="bg-[#121826]">Vertical Portrait (uses Tall/Legacy)</option>
+                      </select>
                     </div>
                   </div>
 
@@ -1095,7 +1283,7 @@ export default function App() {
                         return (
                           <div className="space-y-2 max-h-[48vh] overflow-y-auto pr-1">
                             {filtered.map((g) => {
-                              const isCustom = customGames.some((cg) => cg.id === g.id);
+                              const isCustom = String(g.id || "").startsWith("custom-game-");
                               return (
                                 <div
                                   key={g.id}
