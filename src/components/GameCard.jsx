@@ -81,7 +81,7 @@ function GameCard({
       onClick={() => onPlayGame(game)}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`group relative ${spanClass} ${aspectClass} rounded-[24px] overflow-hidden border border-slate-700/50 bg-[#1a2236] hover:border-blue-400 hover:shadow-[0_12px_28px_rgba(59,130,246,0.3)] cursor-pointer transition-all duration-300 flex flex-col justify-between shadow-sm select-none`}
+      className={`group relative ${spanClass} ${aspectClass} rounded-[24px] overflow-hidden border border-slate-700/50 bg-[#25324e] hover:border-blue-400 hover:shadow-[0_12px_28px_rgba(59,130,246,0.3)] cursor-pointer transition-all duration-300 flex flex-col justify-between shadow-sm select-none`}
       id={`game-card-${game.id}`}
     >
       {/* Dynamic Image Wrapper */}

@@ -10,7 +10,7 @@ export default function Header({
   onLogout,
 }) {
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-slate-700/40 bg-[#101626]/90 backdrop-blur px-4 py-4 md:px-8 shadow-md">
+    <header className="sticky top-0 z-40 w-full border-b border-slate-700/40 bg-[#161f30]/90 backdrop-blur px-4 py-4 md:px-8 shadow-md">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
         
         {/* Brand Logo & Title with the Custom Game Logo */}
@@ -41,13 +41,13 @@ export default function Header({
               placeholder="Search unblocked games..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full rounded-full border border-slate-700/60 bg-slate-850/40 py-2.5 pr-10 pl-11 text-sm text-slate-100 placeholder-slate-400 focus:border-blue-500 focus:bg-slate-800/80 focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all duration-150"
+              className="w-full rounded-full border border-slate-700/60 bg-[#25324e]/50 py-2.5 pr-10 pl-11 text-sm text-slate-100 placeholder-slate-400 focus:border-blue-500 focus:bg-[#2e3e61]/80 focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all duration-150"
               id="search-input"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
-                className="absolute top-1/2 right-3 -translate-y-1/2 rounded-full p-1 text-slate-400 hover:bg-slate-800 hover:text-slate-100"
+                className="absolute top-1/2 right-3 -translate-y-1/2 rounded-full p-1 text-slate-400 hover:bg-[#25324e] hover:text-slate-100"
                 id="clear-search-btn"
               >
                 <X className="h-3.5 w-3.5" />
@@ -60,7 +60,7 @@ export default function Header({
         {isAdmin && (
           <button
             onClick={onLogout}
-            className="flex items-center gap-1.5 rounded-xl border border-slate-800 bg-slate-900 px-3 py-2 text-xs font-bold text-slate-300 hover:bg-slate-800 hover:text-white transition-all cursor-pointer shadow-sm"
+            className="flex items-center gap-1.5 rounded-xl border border-slate-700/50 bg-[#25324e] px-3 py-2 text-xs font-bold text-slate-300 hover:bg-[#2e3e61] hover:text-white transition-all cursor-pointer shadow-sm"
             title="Log out of Admin Panel"
             id="admin-logout-btn"
           >

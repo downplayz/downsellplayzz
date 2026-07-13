@@ -122,7 +122,7 @@ export default function GameArena({
       <div className="flex items-center justify-between px-2">
         <button
           onClick={onClose}
-          className="group flex items-center gap-2 rounded-2xl border border-slate-700 bg-[#1a2236] px-5 py-2.5 text-xs font-bold text-slate-300 hover:border-slate-600 hover:text-white transition-colors duration-150 cursor-pointer shadow-sm"
+          className="group flex items-center gap-2 rounded-2xl border border-slate-700 bg-[#25324e] px-5 py-2.5 text-xs font-bold text-slate-300 hover:border-slate-600 hover:text-white transition-colors duration-150 cursor-pointer shadow-sm"
           id="back-to-catalog"
         >
           <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
@@ -222,7 +222,7 @@ export default function GameArena({
         </div>
 
         {/* Solid control panel styled for dark theme */}
-        <div className="flex h-14 items-center justify-between border-t border-slate-700/60 bg-[#1a2236] px-6 text-xs text-slate-300 select-none">
+        <div className="flex h-14 items-center justify-between border-t border-slate-700/60 bg-[#25324e] px-6 text-xs text-slate-300 select-none">
           <div className="flex items-center gap-3">
             <span className="text-[10px] uppercase font-bold text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2.5 py-1 rounded-md">
               FREE PLAY
@@ -258,7 +258,7 @@ export default function GameArena({
       {!isFullscreen && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto w-full mt-2 animate-fade-in">
           {/* Main Info Block */}
-          <div className="md:col-span-2 bg-[#1a2236] rounded-3xl p-6 border border-slate-700/40 shadow-lg space-y-4 text-slate-200">
+          <div className="md:col-span-2 bg-[#25324e] rounded-3xl p-6 border border-slate-700/40 shadow-lg space-y-4 text-slate-200">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h3 className="text-xl font-bold font-sans text-slate-100">{game.title}</h3>
@@ -273,7 +273,7 @@ export default function GameArena({
                 className={`flex items-center gap-1.5 rounded-xl border px-3.5 py-1.5 text-xs font-bold transition-all duration-150 cursor-pointer ${
                   isFavorite
                     ? "border-rose-500/30 bg-rose-500/20 text-rose-400 shadow-sm"
-                    : "border-slate-750 bg-[#202b44] text-slate-300 hover:border-slate-600 hover:text-white"
+                    : "border-slate-700/40 bg-[#2e3e61] text-slate-300 hover:border-slate-500 hover:text-white"
                 }`}
                 title={isFavorite ? "Remove from Favorites" : "Pin to Favorites"}
                 id="toggle-fav-arena-btn"
@@ -298,7 +298,7 @@ export default function GameArena({
           </div>
 
           {/* Related Games Sidebar panel */}
-          <div className="bg-[#1a2236] rounded-3xl p-6 border border-slate-700/40 shadow-lg flex flex-col justify-between text-slate-200">
+          <div className="bg-[#25324e] rounded-3xl p-6 border border-slate-700/40 shadow-lg flex flex-col justify-between text-slate-200">
             <div className="space-y-4">
               <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-800/60 pb-2">
                 More Fun Games

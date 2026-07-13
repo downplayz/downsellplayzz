@@ -32,6 +32,40 @@ const SIDEBAR_CATEGORIES = [
   { name: "Favorites", value: "Favorites", icon: "Star" },
 ];
 
+// Local database fallback helpers
+const getLocalDB = () => {
+  try {
+    const saved = localStorage.getItem("kira_games_db");
+    if (saved) return JSON.parse(saved);
+  } catch (e) {
+    console.error("Failed to parse local db:", e);
+  }
+  return {
+    customGames: [],
+    defaultGamesOverrides: {},
+    deletedDefaultIds: []
+  };
+};
+
+const saveLocalDB = (db) => {
+  try {
+    localStorage.setItem("kira_games_db", JSON.stringify(db));
+  } catch (e) {
+    console.error("Failed to save local db:", e);
+  }
+};
+
+const getMergedLocalGames = () => {
+  const db = getLocalDB();
+  const activeDefaults = defaultGamesData
+    .filter((g) => !db.deletedDefaultIds.includes(g.id))
+    .map((g) => {
+      const override = db.defaultGamesOverrides[g.id];
+      return override ? { ...g, ...override } : g;
+    });
+  return [...db.customGames, ...activeDefaults];
+};
+
 export default function App() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
@@ -49,7 +83,7 @@ export default function App() {
   });
 
   // Client-side consolidated games list preloaded with defaults
-  const [allGames, setAllGames] = useState(defaultGamesData);
+  const [allGames, setAllGames] = useState(() => getMergedLocalGames());
   const [gamesLoading, setGamesLoading] = useState(true);
 
   const [editingGameId, setEditingGameId] = useState(null);
@@ -100,11 +134,14 @@ export default function App() {
           const data = await res.json();
           if (isMounted) {
             setAllGames(data);
-            setGamesLoading(false);
           }
         }
       } catch (err) {
-        console.error("Error fetching games from server:", err);
+        console.error("Error fetching games from server, using local fallback:", err);
+      } finally {
+        if (isMounted) {
+          setGamesLoading(false);
+        }
       }
     };
     fetchGames();
@@ -358,7 +395,7 @@ export default function App() {
     const isRawIframe = newGameIframe.trim().toLowerCase().startsWith("<iframe");
 
     if (editingGameId) {
-      // --- EDIT MODE (Update on Server) ---
+      // --- EDIT MODE (Update on Server & Local fallback) ---
       const updatedGame = {
         id: editingGameId,
         title: newGameTitle.trim(),
@@ -376,28 +413,40 @@ export default function App() {
           : { iframeUrl: newGameIframe.trim(), iframe: undefined })
       };
 
-      try {
-        const response = await fetch("/api/games/update", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(updatedGame)
-        });
-
-        if (response.ok) {
-          setAllGames((prev) =>
-            prev.map((g) => (g.id === editingGameId ? updatedGame : g))
-          );
-          setFormSuccessMsg(`Successfully saved changes to "${newGameTitle}"!`);
-          setEditingGameId(null);
-        } else {
-          alert("Failed to update game on the server.");
-        }
-      } catch (err) {
-        console.error("Error updating game:", err);
-        alert("Network error: Could not reach full-stack server.");
+      // 1. Update local storage db immediately
+      const db = getLocalDB();
+      const isCustom = db.customGames.some((g) => g.id === updatedGame.id);
+      if (isCustom) {
+        db.customGames = db.customGames.map((g) => (g.id === updatedGame.id ? updatedGame : g));
+      } else {
+        db.defaultGamesOverrides[updatedGame.id] = updatedGame;
       }
+      saveLocalDB(db);
+
+      // 2. Update React state immediately
+      setAllGames((prev) =>
+        prev.map((g) => (g.id === editingGameId ? updatedGame : g))
+      );
+      setFormSuccessMsg(`Successfully saved changes to "${newGameTitle}"!`);
+      setEditingGameId(null);
+
+      // 3. Sync with Express server in the background
+      fetch("/api/games/update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedGame)
+      })
+      .then((res) => {
+        if (!res.ok) {
+          console.warn("Express server returned error on update, using local cache.");
+        }
+      })
+      .catch((err) => {
+        console.warn("Express server unreachable, using local cache:", err);
+      });
+
     } else {
-      // --- CREATE/INSERT MODE (Add on Server) ---
+      // --- CREATE/INSERT MODE (Add on Server & Local fallback) ---
       const gameId = `custom-game-${Date.now()}`;
       const newGame = {
         id: gameId,
@@ -416,23 +465,29 @@ export default function App() {
           : { iframeUrl: newGameIframe.trim() })
       };
 
-      try {
-        const response = await fetch("/api/games/add", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(newGame)
-        });
+      // 1. Update local storage db immediately
+      const db = getLocalDB();
+      db.customGames.unshift(newGame);
+      saveLocalDB(db);
 
-        if (response.ok) {
-          setAllGames((prev) => [newGame, ...prev]);
-          setFormSuccessMsg(`Successfully added "${newGameTitle}"!`);
-        } else {
-          alert("Failed to add game to the server.");
+      // 2. Update React state immediately
+      setAllGames((prev) => [newGame, ...prev]);
+      setFormSuccessMsg(`Successfully added "${newGameTitle}"!`);
+
+      // 3. Sync with Express server in the background
+      fetch("/api/games/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newGame)
+      })
+      .then((res) => {
+        if (!res.ok) {
+          console.warn("Express server returned error on add, using local cache.");
         }
-      } catch (err) {
-        console.error("Error adding game:", err);
-        alert("Network error: Could not reach full-stack server.");
-      }
+      })
+      .catch((err) => {
+        console.warn("Express server unreachable, using local cache:", err);
+      });
     }
 
     // Reset fields
@@ -454,40 +509,44 @@ export default function App() {
   // Delete any game from database (custom or default)
   const handleDeleteGame = async (gameId, gameTitle) => {
     if (confirm(`Are you sure you want to delete "${gameTitle || "this game"}" from the database?`)) {
-      try {
-        const response = await fetch("/api/games/delete", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: gameId })
-        });
-
-        if (response.ok) {
-          setAllGames((prev) => prev.filter((g) => g.id !== gameId));
-          
-          if (editingGameId === gameId) {
-            setEditingGameId(null);
-            setNewGameTitle("");
-            setNewGameBanner("");
-            setNewGameLogo("");
-            setNewGameLegacy("");
-            setNewGamePreviewVid("");
-            setNewGameIframe("");
-            setNewGameDesc("");
-            setNewGameControls("");
-            setNewGameCardStyle("square");
-          }
-        } else {
-          alert("Failed to delete game from server.");
+      // 1. Update local storage db immediately
+      const db = getLocalDB();
+      const isCustom = db.customGames.some((g) => g.id === gameId);
+      if (isCustom) {
+        db.customGames = db.customGames.filter((g) => g.id !== gameId);
+      } else {
+        if (!db.deletedDefaultIds.includes(gameId)) {
+          db.deletedDefaultIds.push(gameId);
         }
-      } catch (err) {
-        console.error("Error deleting game:", err);
-        alert("Network error: Could not delete game from server.");
       }
+      saveLocalDB(db);
+
+      // 2. Update React state immediately
+      setAllGames((prev) => prev.filter((g) => g.id !== gameId));
+      
+      if (editingGameId === gameId) {
+        handleCancelEdit();
+      }
+
+      // 3. Sync with Express server in the background
+      fetch("/api/games/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: gameId })
+      })
+      .then((res) => {
+        if (!res.ok) {
+          console.warn("Express server returned error on delete, using local cache.");
+        }
+      })
+      .catch((err) => {
+        console.warn("Express server unreachable, using local cache:", err);
+      });
     }
   };
 
   return (
-    <div className="relative min-h-screen bg-[#101626] text-slate-100 flex flex-col font-sans overflow-x-hidden selection:bg-blue-500/20 selection:text-blue-300">
+    <div className="relative min-h-screen bg-[#161f30] text-slate-100 flex flex-col font-sans overflow-x-hidden selection:bg-blue-500/20 selection:text-blue-300">
       
       {/* Background radial glow */}
       <div className="absolute top-0 left-1/4 h-[500px] w-[500px] rounded-full bg-blue-500/5 blur-[120px] pointer-events-none" />
@@ -512,7 +571,7 @@ export default function App() {
         
         {/* Left Sticky Vertical Sidebar (Desktop only) */}
         {!activeGame && (
-          <aside className="w-64 flex-shrink-0 border-r border-slate-700/30 bg-[#141b2d] p-5 hidden md:flex flex-col justify-between">
+          <aside className="w-64 flex-shrink-0 border-r border-slate-700/30 bg-[#1d273d] p-5 hidden md:flex flex-col justify-between">
             <div className="space-y-6">
               <div className="px-2">
                 <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
@@ -533,7 +592,7 @@ export default function App() {
                       className={`w-full flex items-center justify-between rounded-2xl px-4 py-3 text-xs font-bold transition-all cursor-pointer ${
                         isActive
                           ? "bg-blue-600/20 border border-blue-500/40 text-blue-400 shadow-sm"
-                          : "text-slate-300 hover:bg-[#1a2236] hover:text-white border border-transparent"
+                          : "text-slate-300 hover:bg-[#25324e] hover:text-white border border-transparent"
                       }`}
                       id={`sidebar-cat-${cat.value.toLowerCase()}`}
                     >
@@ -583,7 +642,7 @@ export default function App() {
                       className={`whitespace-nowrap flex items-center gap-2 rounded-full px-4 py-2.5 text-xs font-black transition-all cursor-pointer ${
                         isActive
                           ? "bg-blue-600 text-white"
-                          : "border border-slate-800 bg-[#0e1320] text-slate-400 hover:border-slate-700 hover:text-slate-200"
+                          : "border border-slate-800 bg-[#25324e] text-slate-400 hover:border-slate-700 hover:text-slate-200"
                       }`}
                       id={`mobile-cat-${cat.value.toLowerCase()}`}
                     >
@@ -626,7 +685,7 @@ export default function App() {
                     {/* Left featured wide card */}
                     <div 
                       onClick={() => handlePlayGame(featuredGame)}
-                      className="lg:col-span-7 relative h-[320px] sm:h-[400px] w-full rounded-[32px] overflow-hidden group cursor-pointer border border-slate-700/50 bg-[#1a2236] shadow-xl hover:border-blue-400/80 hover:shadow-[0_12px_28px_rgba(59,130,246,0.2)] transition-all duration-300"
+                      className="lg:col-span-7 relative h-[320px] sm:h-[400px] w-full rounded-[32px] overflow-hidden group cursor-pointer border border-slate-700/50 bg-[#25324e] shadow-xl hover:border-blue-400/80 hover:shadow-[0_12px_28px_rgba(59,130,246,0.2)] transition-all duration-300"
                     >
                       <img 
                         src={featuredGame.banner} 
@@ -672,7 +731,7 @@ export default function App() {
                         <div
                           key={game.id}
                           onClick={() => handlePlayGame(game)}
-                          className="relative aspect-video rounded-[24px] overflow-hidden group cursor-pointer border border-slate-700/50 bg-[#1a2236] shadow-lg hover:border-blue-400 hover:scale-[1.02] transition-all duration-300"
+                          className="relative aspect-video rounded-[24px] overflow-hidden group cursor-pointer border border-slate-700/50 bg-[#25324e] shadow-lg hover:border-blue-400 hover:scale-[1.02] transition-all duration-300"
                         >
                           <img 
                             src={game.banner} 
