@@ -1,0 +1,212 @@
+[
+  {
+    "id": "zombie-rush",
+    "title": "Zombie Rush",
+    "description": "An intense action survival game. Survive waves of the undead by maneuvering and clearing out hordes of zombies.",
+    "category": "Arcade",
+    "iframeUrl": "https://gnhustgames.org/zombie-rush-source/",
+    "controls": "W, A, S, D or Arrow keys to move, Aim and Shoot with Mouse.",
+    "banner": "https://i.ibb.co/fd48TRWB/Zombie-Rush-300x300-png.webp",
+    "icon": "Flame"
+  },
+  {
+    "id": "stickman-clash",
+    "title": "Stickman Clash",
+    "description": "A thrilling stickman combat arena game. Fight epic battles, utilize advanced weaponry, and defeat all opponents to become the ultimate stickman warrior.",
+    "category": "Arcade",
+    "iframeUrl": "https://g2.igroutka.ru/lib/crazy/games/stickman-clash/",
+    "controls": "WASD / Arrow Keys to Move, Click / Tap to Attack, Space / Special Keys for items.",
+    "banner": "https://i.ibb.co/dwW3sJHN/stickman-fighter-epic-battle-2-logo.webp",
+    "icon": "Swords"
+  },
+  {
+    "id": "ragdoll-archers",
+    "title": "Ragdoll Archers",
+    "description": "An epic physics-based stickman archery battle. Aim carefully, calculate flight trajectories, upgrade arrows, and defeat enemies in multiple game modes.",
+    "category": "Puzzle",
+    "iframeUrl": "https://jasongamesdev.github.io/ragdoll-archers/",
+    "controls": "Mouse / Touch to drag and aim, Release to fire.",
+    "banner": "https://i.ibb.co/kV7cr97K/ragdoll-archers.webp",
+    "icon": "Target"
+  },
+  {
+    "id": "rooftop-snipers",
+    "title": "Rooftop Snipers",
+    "description": "A chaotic two-player pixel physics shooter. Jump and shoot to push your opponent off the roof before they do the same to you!",
+    "category": "Retro",
+    "iframeUrl": "https://jasongamesdev.github.io/rooftop-snipers/",
+    "controls": "Player 1: W to jump, E to shoot. Player 2: I to jump, O to shoot.",
+    "banner": "https://gswitch3.github.io/imgs/rooftop-snipers.png",
+    "icon": "Crosshair"
+  },
+  {
+    "id": "kick-the-buddy",
+    "title": "Kick the Buddy",
+    "description": "Interactive toy-bashing stress reliever. Explode, destroy, fire, shoot, smash, and freeze elements to kick the buddy to your heart's content!",
+    "category": "Puzzle",
+    "iframeUrl": "https://kickthebuddy.lol/play/kick-the-buddy/",
+    "controls": "Click or tap and drag to throw/smash, select weapons from the menu to interact.",
+    "banner": "https://i.ibb.co/VYpQ1YVZ/kick-buddy-game-new.webp",
+    "icon": "Bomb"
+  },
+  {
+    "id": "western-sniper",
+    "title": "Western Sniper",
+    "description": "Become a legendary sniper in the Wild West. Take aim, take cover, eliminate outlaws, and bring order back to the dusty frontier towns.",
+    "category": "Arcade",
+    "iframeUrl": "https://famobi.cdn.msnfun.com/9n2cn30d7w82/v21/index.html?msstart_sdk_init=eyJwYXJlbnRPcmlnaW4iOiJodHRwczovL3d3dy5tc24uY29tIiwiY2xpZW50SWQiOiIwRkQ4MTlBQ0EwRkI2RDg1MDAxNjBFRjNBMTExNkNGRCIsImxvY2FsZSI6ImVuLWdiIiwiZW50cnlQb2ludElkIjoiIiwic3dpdGNoR2FtZVBheWxvYWQiOnsic3dpdGNoZWRUbyI6IjluMmNuMzBkN3c4MiIsInZhbHVlIjp7fX19",
+    "controls": "Move mouse or swipe to aim, release or click to fire. Take cover automatically.",
+    "banner": "https://www5.minijuegosgratis.com/v3/games/thumbnails/252296_7_sq.jpg",
+    "icon": "Crosshair"
+  },
+  {
+    "id": "cars-arena",
+    "title": "Cars Arena",
+    "description": "High-octane vehicular survival battle. Drive, drift, smash opponents, and stay on the arena tiles as the hex ground disintegrates under your tires!",
+    "category": "Arcade",
+    "iframeUrl": "https://carsarena.io/game.html",
+    "controls": "WASD / Arrow Keys or Mouse to steer and accelerate. Space to jump.",
+    "banner": "https://imgs.search.brave.com/lBckFNImAuHPjjN2I5-eMkSNk99L1nga9AZW7wuWeLk/rs:fit:200:200:1:0/g:ce/aHR0cHM6Ly9pbWdz/LmNyYXp5Z2FtZXMu/Y29tL2NhcnMtYXJl/bmFfMTZ4OS8yMDI2/MDUyMDA1MjUyNC9j/YXJzLWFyZW5hXzE2/eDktY292ZXI_bWV0/YWRhdGE9bm9uZSZh/bXA7cXVhbGl0eT0x/MDAmYW1wO3dpZHRo/PTEyMDAmYW1wO2hl/aWdodD02MzAmYW1w/O2ZpdD1jcm9w",
+    "icon": "Car"
+  },
+  {
+    "id": "tag",
+    "title": "Tag",
+    "description": "Multiplayer playground game of chase. Dodge, run, jump over obstacles, and tag other players in vibrant platforms and maps.",
+    "category": "Retro",
+    "iframeUrl": "https://taggame.io/game/tag/",
+    "controls": "Arrow keys or WASD to run and jump. Reach other players to tag them.",
+    "banner": "https://imgs.search.brave.com/5_rbCo7AYRDjErqW6tfLLr_jHQVuvAZmmLnNnKyqRG4/rs:fit:32:32:1:0/g:ce/aHR0cDovL2Zhdmlj/b25zLnNlYXJjaC5i/cmF2ZS5jb20vaWNv/bnMvM2I1OGRiZWMy/ZGFlZTE1MDFmYjYy/ZjcyZmQ5Y2QwN2Vm/MjUxMWMyNWQwMzM4/YWIxZTNlMmNjMGM1/N2YxZDIxMS90YWdn/YW1lLmlvLw",
+    "icon": "Users"
+  },
+  {
+    "id": "subway-surfers",
+    "title": "Subway Surfers",
+    "description": "The ultimate endless runner! Dash as fast as you can, dodge oncoming trains, and escape from the grumpy inspector and his dog.",
+    "category": "Arcade",
+    "iframeUrl": "https://files.gamezhero.com/game/905/1d1/9051d1173be765fb/data/index.html",
+    "controls": "Left / Right Arrows to change lanes, Up Arrow to jump, Down Arrow to slide.",
+    "banner": "https://subwayonline.io/cache/data/image/game/subway-surfers-online-game-feature-image-m40x40.jpg",
+    "icon": "Zap"
+  },
+  {
+    "id": "space-waves",
+    "title": "Space Waves",
+    "description": "Test your reflexes in this high-speed geometric wave-riding game. Navigate dangerous neon obstacle courses in deep space.",
+    "category": "Retro",
+    "iframeUrl": "https://spacewaves2.org/game/space-waves/",
+    "controls": "Click or press Spacebar / Up Arrow to steer the wave upwards, release to let it glide down.",
+    "banner": "https://spacewaves2.org/cache/data/image/game/space-waves-favicon-m54x54.png",
+    "icon": "Activity"
+  },
+  {
+    "id": "level-devil",
+    "title": "Level Devil",
+    "description": "Don't trust the floor! This unblocked troll platformer is filled with hidden spikes, collapsing tiles, and surprising traps that keep you guessing.",
+    "category": "Puzzle",
+    "iframeUrl": "https://leveldevilfull.com/play/level-devil/",
+    "controls": "WASD or Arrow keys to move and jump.",
+    "banner": "https://leveldevilfull.com/level-devil.png",
+    "icon": "Skull"
+  },
+  {
+    "id": "blumgi-ball",
+    "title": "Blumgi Ball",
+    "description": "An engaging physics-puzzle sports game where you aim, shoot, and teleport to solve levels and dunk the ball.",
+    "category": "Puzzle",
+    "iframeUrl": "https://leveldevilfull.com/play/blumgi-ball/",
+    "controls": "Click and drag to aim, release to shoot. Click/tap again to teleport to the ball.",
+    "banner": "https://leveldevilfull.com/data/image/game/blumgi-ball.webp",
+    "icon": "Target"
+  },
+  {
+    "id": "tunnel-rush",
+    "title": "Tunnel Rush",
+    "description": "Buckle up and get ready to fly through ultra-speed 3D neon tunnels, dodging spinning blocks and shifting hazards.",
+    "category": "Arcade",
+    "iframeUrl": "https://leveldevilfull.com/play/tunnel-rush/",
+    "controls": "Left / Right Arrow Keys or A / D to rotate left and right.",
+    "banner": "https://leveldevilfull.com/data/image/game/tunnel-rush.webp",
+    "icon": "Wind"
+  },
+  {
+    "id": "getting-over-it",
+    "title": "Getting Over It",
+    "description": "A high-friction climbing puzzle. Command a massive hammer with your mouse to scale an impossibly steep mountain.",
+    "category": "Puzzle",
+    "iframeUrl": "https://leveldevilfull.com/play/getting-over-it/",
+    "controls": "Use mouse/touch to rotate hammer, hooking it onto obstacles to lift yourself.",
+    "banner": "https://leveldevilfull.com/data/image/game/getting-over-it.webp",
+    "icon": "Anchor"
+  },
+  {
+    "id": "stickman-hook",
+    "title": "Stickman Hook",
+    "description": "Swing like a spider! Use grappling hooks to soar through levels, bouncing off bumpers and executing acrobatic flips.",
+    "category": "Arcade",
+    "iframeUrl": "https://leveldevilfull.com/play/stickman-hook/",
+    "controls": "Click or press Spacebar to hook and swing, release to let go and soar.",
+    "banner": "https://leveldevilfull.com/data/image/game/stickman-hook.webp",
+    "icon": "Link"
+  },
+  {
+    "id": "bloxd-io",
+    "title": "Bloxd.io",
+    "description": "Jump into an immersive multiplayer voxel arena! Enjoy varied block-building, survival, and parkour modes with online players.",
+    "category": "Arcade",
+    "iframeUrl": "https://bloxd.io",
+    "controls": "WASD to move, Space to jump, Shift to run, Mouse to build/break.",
+    "banner": "https://www.bloxd.net/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Flogo.8f78db98.png&w=32&q=75",
+    "icon": "Box"
+  },
+  {
+    "id": "basket-random",
+    "title": "Basket Random",
+    "description": "A wacky two-player ragdoll basketball game where physics are chaotic and every round brings random courts, players, and balls.",
+    "category": "Retro",
+    "iframeUrl": "https://html5.gamedistribution.com/rvvASMiM/bf1268dccb5d43e7970bb3edaa54afc8/index.html?gd_sdk_referrer_url=https%3A%2F%2Fbasketrandom.io%2Fbasket-random&gd_zone_config=eyJwYXJlbnRVUkwiOiJodHRwczovL2Jhc2tldHJhbmRvbS5pby9iYXNrZXQtcmFuZG9tIiwicGFyZW50RG9tYWluIjoiYmFza2V0cmFuZG9tLmlvIiwidG9wRG9tYWluIjoiYmFza2V0cmFuZG9tLmlvIiwiaGFzSW1wcmVzc2lvbiI6ZmFsc2UsImxvYWRlckVuYWJsZWQiOnRydWUsImhvc3QiOiJodG1sNS5nYW1lZGlzdHJpYnV0aW9uLmNvbSIsInZlcnNpb24iOiIxLjUuMTgifQ%3D%3D",
+    "controls": "Press W or Up Arrow to jump and shoot.",
+    "banner": "https://basketrandom.io/cache/data/image/basket-random-m150x150.webp",
+    "icon": "Trophy"
+  },
+  {
+    "id": "screw-out-nb",
+    "title": "Screw Out: N&B",
+    "description": "Unscrew nuts and bolts, solve intricate puzzles, and free the plates in this ultra-satisfying mechanical brain-teaser!",
+    "category": "Puzzle",
+    "iframeUrl": "https://crazygames.cdn.msnfun.com/9nvd4v66kdj7/v5/index.html?msstart_sdk_init=eyJwYXJlbnRPcmlnaW4iOiJodHRwczovL3d3dy5tc24uY29tIiwiY2xpZW50SWQiOiIwRkQ4MTlBQ0EwRkI2RDg1MDAxNjBFRjNBMTExNkNGRCIsImxvY2FsZSI6ImVuLWdiIiwiZW50cnlQb2ludElkIjoiIiwic3dpdGNoR2FtZVBheWxvYWQiOnsic3dpdGNoZWRUbyI6IjludmQ0djY2a2RqNyIsInZhbHVlIjp7fX19",
+    "controls": "Click or tap on a screw to select and unscrew it, then click on an empty screw hole to place it.",
+    "banner": "https://crazygames.cdn.msnfun.com/9nvd4v66kdj7/v5/logo.png",
+    "icon": "Wrench"
+  },
+  {
+    "id": "tank-stars",
+    "title": "Tank Stars",
+    "description": "Choose the right weapon, aim with precision, and unleash powerful missiles to blow up your opponent's tanks in explosive turn-based battles.",
+    "category": "Arcade",
+    "iframeUrl": "https://storerider.cdn.msnfun.com/9nrmpl4vmgkg/v12/index.html?msstart_sdk_init=eyJwYXJlbnRPcmlnaW4iOiJodHRwczovL3d3dy5tc24uY29tIiwiY2xpZW50SWQiOiIwRkQ4MTlBQ0EwRkI2RDg1MDAxNjBFRjNBMTExNkNGRCIsImxvY2FsZSI6ImVuLWdiIiwiZW50cnlQb2ludElkIjoiIiwic3dpdGNoR2FtZVBheWxvYWQiOnsic3dpdGNoZWRUbyI6Ijlucm1wbDR2bWdrZyIsInZhbHVlIjp7fX19",
+    "controls": "Use touch or mouse dragging to adjust shooting angle and power, then tap/click fire. Use controls to position your tank.",
+    "banner": "https://imgs.search.brave.com/iTKI50eXYjXJZyUW8uvg5PbBmpSH9Ka7jYWmYf4nlpE/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9zdGF0/aWMud2lraWEubm9j/b29raWUubmV0L3Rh/bmstc3RhcnMvaW1h/Z2VzLzcvNzQvVGFu/a19TdGFycy5wbmcv/cmV2aXNpb24vbGF0/ZXN0L3NjYWxlLXRv/LXdpZHRoLWRvd24v/ODQ0P2NiPTIwMjIw/NjI4MTYzMjEw",
+    "icon": "Shield"
+  },
+  {
+    "id": "fragen",
+    "title": "Fragen",
+    "description": "Test your speed and combat intelligence in a frantic battle of answers. Keep your reflexes sharp to survive the onslaught.",
+    "category": "Arcade",
+    "iframeUrl": "https://crazygames.cdn.msnfun.com/9nf0clvx79hg/v1/index.html?msstart_sdk_init=eyJwYXJlbnRPcmlnaW4iOiJodHRwczovL3d3dy5tc24uY29tIiwiY2xpZW50SWQiOiIwRkQ4MTlBQ0EwRkI2RDg1MDAxNjBFRjNBMTExNkNGRCIsImxvY2FsZSI6ImVuLWdiIiwiZW50cnlQb2ludElkIjoiIiwic3dpdGNoR2FtZVBheWxvYWQiOnsic3dpdGNoZWRUbyI6IjluZjBjbHZ4NzloZyIsInZhbHVlIjp7fX19",
+    "controls": "Mouse or Keyboard keys as instructed on screen to answer questions and combat enemies.",
+    "banner": "https://imgs.search.brave.com/jBY1szZUy-bJYpD3OE1nMDUCLC3NUvF52bGnmppV3zA/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly93d3cu/b25saW5lZ2FtZXMu/aW8vbWVkaWEvcG9z/dHMvMTA0MC9mcmFn/ZW4tZ2FtZS53ZWJw",
+    "icon": "Zap"
+  },
+  {
+    "id": "ragdoll-hit",
+    "title": "Ragdoll Hit",
+    "description": "A physics-based ragdoll fighter! Launch punches, kicks, and weapon attacks with dramatic physical interactions.",
+    "category": "Arcade",
+    "iframeUrl": "https://freetoplayz.github.io/ragdoll-hit/",
+    "controls": "WASD or Arrow keys to lean, punch, and kick. Click/tap physical buttons for custom attacks.",
+    "banner": "https://ragdollhitonline.io/cache/data/image/game/ragdoll-hit-m110x71.jpg",
+    "icon": "Activity"
+  }
+]
