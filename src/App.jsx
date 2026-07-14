@@ -131,9 +131,25 @@ export default function App() {
       try {
         const res = await fetch("/api/games");
         if (res.ok) {
-          const data = await res.json();
+          const serverGames = await res.json();
           if (isMounted) {
-            setAllGames(data);
+            const db = getLocalDB();
+            
+            // Deduplicate custom games (server wins if present on server, fallback to local storage)
+            const serverIds = new Set(serverGames.map(g => g.id));
+            const uniqueLocalCustom = db.customGames.filter(g => !serverIds.has(g.id));
+            
+            // Merge with local overrides and respect locally deleted default ids
+            const finalGames = serverGames.map((g) => {
+              if (db.deletedDefaultIds.includes(g.id)) {
+                return null;
+              }
+              const override = db.defaultGamesOverrides[g.id];
+              return override ? { ...g, ...override } : g;
+            }).filter(Boolean);
+            
+            // Combine local-only custom games with merged server games
+            setAllGames([...uniqueLocalCustom, ...finalGames]);
           }
         }
       } catch (err) {
@@ -567,7 +583,7 @@ export default function App() {
       />
 
       {/* Sidebar Layout + Content Area */}
-      <div className="flex-1 max-w-[1450px] w-full mx-auto flex flex-col md:flex-row gap-0">
+      <div className="flex-1 w-full flex flex-col md:flex-row gap-0">
         
         {/* Left Sticky Vertical Sidebar (Desktop only) */}
         {!activeGame && (
@@ -708,11 +724,8 @@ export default function App() {
                         />
                       )}
 
-                      <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8 z-20 text-left flex flex-col items-start gap-2.5">
-                        <span className="flex items-center gap-1.5 rounded-full bg-blue-500/20 px-3 py-1 text-[10px] font-black text-blue-400 border border-blue-500/30 uppercase tracking-widest">
-                          🎮 Popular Now
-                        </span>
-                        <h3 className="font-sans text-xl sm:text-2xl font-black text-white group-hover:text-blue-400 transition-colors">
+                      <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8 z-20 text-left flex flex-col items-start gap-2">
+                        <h3 className="font-sans text-xl sm:text-2xl font-black text-white transition-colors">
                           {featuredGame.title}
                         </h3>
                         <p className="text-xs sm:text-sm text-slate-300 max-w-md line-clamp-2 leading-relaxed">
@@ -752,21 +765,9 @@ export default function App() {
                             />
                           )}
 
-                          <div className="absolute bottom-0 left-0 right-0 p-4 z-20 text-left opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 pointer-events-none flex items-center gap-2.5">
-                            {game.logo ? (
-                              <img
-                                src={game.logo}
-                                alt=""
-                                referrerPolicy="no-referrer"
-                                className="w-7 h-7 rounded-xl object-cover border border-white/20 shadow-sm flex-shrink-0"
-                              />
-                            ) : (
-                              <div className="w-7 h-7 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 flex-shrink-0">
-                                <LucideIcons.Gamepad2 className="h-3.5 w-3.5" />
-                              </div>
-                            )}
+                          <div className="absolute bottom-0 left-0 right-0 p-4 z-20 text-left opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 pointer-events-none">
                             <div className="min-w-0 flex-1">
-                              <h4 className="font-sans text-xs sm:text-sm font-black text-white group-hover:text-blue-400 transition-colors truncate">
+                              <h4 className="font-sans text-xs sm:text-sm font-black text-white transition-colors truncate">
                                 {game.title}
                               </h4>
                             </div>
@@ -806,7 +807,7 @@ export default function App() {
                           loading="lazy"
                         />
                         <div className="min-w-0 flex-1">
-                          <h4 className="text-xs font-bold text-slate-200 group-hover:text-blue-400 truncate font-sans">
+                          <h4 className="text-xs font-bold text-slate-200 group-hover:text-white truncate font-sans">
                             {rg.title}
                           </h4>
                           <span className="text-[10px] text-slate-500 font-semibold">Play Again</span>

@@ -27,6 +27,7 @@ function GameCard({
   styleOverride
 }) {
   const [imgLoaded, setImgLoaded] = useState(false);
+  const [imgError, setImgError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const videoRef = useRef(null);
 
@@ -36,14 +37,24 @@ function GameCard({
   const IconComponent = LucideIcons[game.icon] || Gamepad2;
 
   // Resolve correct image source based on layout type
-  let imageSrc = game.banner;
+  let preferredSrc = game.banner;
   if (style === "square") {
-    imageSrc = game.logo || game.banner;
+    preferredSrc = game.logo || game.banner;
   } else if (style === "vertical") {
-    imageSrc = game.legacy || game.banner || game.logo;
+    preferredSrc = game.legacy || game.banner || game.logo;
   } else {
     // rectangular
-    imageSrc = game.banner || game.logo;
+    preferredSrc = game.banner || game.logo;
+  }
+
+  // If there's an image load error, try falling back to banner, or a fallback placeholder if banner also failed
+  let imageSrc = preferredSrc;
+  if (imgError) {
+    if (preferredSrc !== game.banner && game.banner) {
+      imageSrc = game.banner;
+    } else {
+      imageSrc = "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&q=80&w=400";
+    }
   }
 
   // Handle video hover playback safely
@@ -63,7 +74,8 @@ function GameCard({
   // Reset image loaded status if game or image source changes
   useEffect(() => {
     setImgLoaded(false);
-  }, [imageSrc]);
+    setImgError(false);
+  }, [preferredSrc, game.id]);
 
   // Determine grid span classes
   let spanClass = "col-span-1";
@@ -99,6 +111,7 @@ function GameCard({
               alt={game.title}
               referrerPolicy="no-referrer"
               onLoad={() => setImgLoaded(true)}
+              onError={() => setImgError(true)}
               className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-108 ${
                 imgLoaded ? "opacity-100 scale-100" : "opacity-0 scale-95"
               }`}
@@ -130,21 +143,9 @@ function GameCard({
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 pointer-events-none" />
 
         {/* Overlaid details - Only shown on hover */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 z-30 flex items-center gap-2.5 text-left opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0 pointer-events-none">
-          {game.logo ? (
-            <img
-              src={game.logo}
-              alt=""
-              referrerPolicy="no-referrer"
-              className="w-7 h-7 rounded-xl object-cover border border-white/20 shadow-sm flex-shrink-0"
-            />
-          ) : (
-            <div className="w-7 h-7 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 flex-shrink-0">
-              <IconComponent className="h-3.5 w-3.5" />
-            </div>
-          )}
+        <div className="absolute bottom-0 left-0 right-0 p-4 z-30 text-left opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0 pointer-events-none">
           <div className="min-w-0 flex-1">
-            <h3 className="font-sans text-xs font-black text-slate-100 group-hover:text-blue-400 transition-colors truncate">
+            <h3 className="font-sans text-xs font-black text-white truncate">
               {game.title}
             </h3>
           </div>

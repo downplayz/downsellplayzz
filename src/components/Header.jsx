@@ -11,7 +11,7 @@ export default function Header({
 }) {
   return (
     <header className="sticky top-0 z-40 w-full border-b border-slate-700/40 bg-[#161f30]/90 backdrop-blur px-4 py-4 md:px-8 shadow-md">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
+      <div className="w-full flex items-center justify-between gap-4">
         
         {/* Brand Logo & Title with the Custom Game Logo */}
         <div 
